@@ -6,4 +6,8 @@ namespace Content.Shared._RMC14.Item;
 public enum ItemCamouflageLayers
 {
     Layer,
+    Layer2,
+    Layer3,
+    Layer4,
+    Layer5,
 }
