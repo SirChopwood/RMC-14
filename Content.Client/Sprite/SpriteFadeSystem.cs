@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+using System.Linq;
 using Content.Client.Gameplay;
 using Content.Shared.Sprite;
 using Robust.Client.GameObjects;
@@ -70,18 +72,48 @@ public sealed class SpriteFadeSystem : EntitySystem
                     continue;
                 }
 
+
+
                 if (!_fadingQuery.TryComp(ent, out var fading))
                 {
                     fading = AddComp<FadingSpriteComponent>(ent);
                     fading.OriginalAlpha = sprite.Color.A;
+                    if (_fadeQuery.TryGetComponent(ent, out var spriteFade))
+                    {
+                        if (spriteFade.Layers is not null && spriteFade.Layers.Count > 0)
+                        {
+                            fading.Layers = spriteFade.Layers;
+                        }
+                    }
                 }
 
                 _comps.Add(fading);
-                var newColor = Math.Max(sprite.Color.A - change, TargetAlpha);
-
-                if (!sprite.Color.A.Equals(newColor))
+                if (fading.Layers is not null && fading.Layers.Count > 0)
                 {
-                    sprite.Color = sprite.Color.WithAlpha(newColor);
+                    foreach (var fadingLayer in fading.Layers)
+                    {
+                        if (sprite.LayerMapTryGet(fadingLayer, out var spriteLayer))
+                        {
+                            if (sprite.TryGetLayer(spriteLayer, out var resultLayer))
+                            {
+                                var newColor = Math.Max(resultLayer.Color.A - change, TargetAlpha);
+
+                                if (!resultLayer.Color.A.Equals(newColor))
+                                {
+                                    resultLayer.Color = resultLayer.Color.WithAlpha(newColor);
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    var newColor = Math.Max(sprite.Color.A - change, TargetAlpha);
+
+                    if (!sprite.Color.A.Equals(newColor))
+                    {
+                        sprite.Color = sprite.Color.WithAlpha(newColor);
+                    }
                 }
             }
         }

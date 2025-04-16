@@ -8,5 +8,6 @@ namespace Content.Shared.Sprite;
 [RegisterComponent, NetworkedComponent]
 public sealed partial class SpriteFadeComponent : Component
 {
-
+    [DataField]
+    public List<string>? Layers;
 }
