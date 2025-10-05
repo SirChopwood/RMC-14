@@ -1,5 +1,5 @@
 ﻿using Content.Shared._RMC14.CCVar;
-using Content.Shared._RMC14.Slow;
+using Content.Shared._RMC14.Input;
 using Content.Shared._RMC14.Weapons.Melee;
 using Content.Shared._RMC14.Xenonids;
 using Content.Shared.Chat.Prototypes;
@@ -7,9 +7,11 @@ using Content.Shared.Coordinates;
 using Content.Shared.Interaction;
 using Content.Shared.Movement.Events;
 using Content.Shared.Popups;
+using Content.Shared.Speech;
 using Content.Shared.Verbs;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Configuration;
+using Robust.Shared.Input.Binding;
 using Robust.Shared.Network;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
@@ -17,6 +19,12 @@ using Robust.Shared.Timing;
 using Robust.Shared.Utility;
 
 namespace Content.Shared._RMC14.Emote;
+
+public enum RMCEmoteBindingType
+{
+    Humanoid,
+    Xeno,
+}
 
 public abstract class SharedRMCEmoteSystem : EntitySystem
 {
@@ -41,6 +49,34 @@ public abstract class SharedRMCEmoteSystem : EntitySystem
         SubscribeLocalEvent<RMCHandEmotesComponent, MoveInputEvent>(OnMove);
 
         Subs.CVar(_config, RMCCVars.RMCEmoteCooldownSeconds, v => _emoteCooldown = TimeSpan.FromSeconds(v), true);
+
+
+        CommandBinds.Builder
+            .Bind(CMKeyFunctions.RMCHumanoidEmote1,
+                InputCmdHandler.FromDelegate(session => TriggerBoundEmote(session, RMCEmoteBindingType.Humanoid, 1))
+            )
+            .Bind(CMKeyFunctions.RMCHumanoidEmote2,
+                InputCmdHandler.FromDelegate(session => TriggerBoundEmote(session, RMCEmoteBindingType.Humanoid, 2))
+            )
+            .Bind(CMKeyFunctions.RMCHumanoidEmote3,
+                InputCmdHandler.FromDelegate(session => TriggerBoundEmote(session, RMCEmoteBindingType.Humanoid, 3))
+            )
+            .Bind(CMKeyFunctions.RMCHumanoidEmote4,
+                InputCmdHandler.FromDelegate(session => TriggerBoundEmote(session, RMCEmoteBindingType.Humanoid, 4))
+            )
+            .Bind(CMKeyFunctions.RMCHumanoidEmote5,
+                InputCmdHandler.FromDelegate(session => TriggerBoundEmote(session, RMCEmoteBindingType.Humanoid, 5))
+            )
+            .Bind(CMKeyFunctions.RMCHumanoidEmote6,
+                InputCmdHandler.FromDelegate(session => TriggerBoundEmote(session, RMCEmoteBindingType.Humanoid, 6))
+            )
+            .Bind(CMKeyFunctions.RMCHumanoidEmote7,
+                InputCmdHandler.FromDelegate(session => TriggerBoundEmote(session, RMCEmoteBindingType.Humanoid, 7))
+            )
+            .Bind(CMKeyFunctions.RMCHumanoidEmote8,
+                InputCmdHandler.FromDelegate(session => TriggerBoundEmote(session, RMCEmoteBindingType.Humanoid, 8))
+            )
+            .Register<SharedRMCEmoteSystem>();
     }
 
     public virtual void TryEmoteWithChat(
@@ -306,5 +342,12 @@ public abstract class SharedRMCEmoteSystem : EntitySystem
             var leaveHangingMessage = Loc.GetString("rmc-hands-emotes-left-hanging");
             _popup.PopupEntity(leaveHangingMessage, uid, uid, PopupType.SmallCaution);
         }
+    }
+
+    private void TriggerBoundEmote(ICommonSession? session, RMCEmoteBindingType type, int index)
+    {
+        if (session?.AttachedEntity is not { } entity || !TryComp<SpeechComponent>(entity, out var speechComp))
+            return;
+        TryEmoteWithChat(entity, "Scream", cooldown: _emoteCooldown);
     }
 }
