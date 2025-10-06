@@ -1,5 +1,5 @@
 ﻿using Content.Shared._RMC14.CCVar;
-using Content.Shared._RMC14.Input;
+using Content.Shared._RMC14.Slow;
 using Content.Shared._RMC14.Weapons.Melee;
 using Content.Shared._RMC14.Xenonids;
 using Content.Shared.Chat.Prototypes;
@@ -7,28 +7,26 @@ using Content.Shared.Coordinates;
 using Content.Shared.Interaction;
 using Content.Shared.Movement.Events;
 using Content.Shared.Popups;
-using Content.Shared.Speech;
 using Content.Shared.Verbs;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Configuration;
-using Robust.Shared.Input.Binding;
 using Robust.Shared.Network;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 using Robust.Shared.Utility;
+using Content.Shared._RMC14.Input;
+using Content.Shared.Chat;
+using Content.Shared.Speech;
+using Robust.Shared.Input;
+using Robust.Shared.Input.Binding;
 
 namespace Content.Shared._RMC14.Emote;
-
-public enum RMCEmoteBindingType
-{
-    Humanoid,
-    Xeno,
-}
 
 public abstract class SharedRMCEmoteSystem : EntitySystem
 {
     [Dependency] private readonly IConfigurationManager _config = default!;
+    [Dependency] private readonly IPrototypeManager _protoManager = default!;
     [Dependency] private readonly INetManager _net = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
     [Dependency] private readonly RotateToFaceSystem _rotate = default!;
@@ -42,6 +40,8 @@ public abstract class SharedRMCEmoteSystem : EntitySystem
 
     private readonly float _interactRange = 1f;
 
+    private Dictionary<string, Dictionary<int, string>> _emoteBindings = new();
+
     public override void Initialize()
     {
         SubscribeLocalEvent<RMCHandEmotesComponent, InteractHandEvent>(OnInteractHand);
@@ -50,33 +50,103 @@ public abstract class SharedRMCEmoteSystem : EntitySystem
 
         Subs.CVar(_config, RMCCVars.RMCEmoteCooldownSeconds, v => _emoteCooldown = TimeSpan.FromSeconds(v), true);
 
+        _emoteBindings.Add("Humanoid", new Dictionary<int, string>()); // This is awful, but how it appears to be done elsewhere... sooo...
+        Subs.CVar(_config, RMCCVars.RMCEmoteBindingHumanoid1, v => _emoteBindings["Humanoid"][1] = v, true);
+        Subs.CVar(_config, RMCCVars.RMCEmoteBindingHumanoid2, v => _emoteBindings["Humanoid"][2] = v, true);
+        Subs.CVar(_config, RMCCVars.RMCEmoteBindingHumanoid3, v => _emoteBindings["Humanoid"][3] = v, true);
+        Subs.CVar(_config, RMCCVars.RMCEmoteBindingHumanoid4, v => _emoteBindings["Humanoid"][4] = v, true);
+        Subs.CVar(_config, RMCCVars.RMCEmoteBindingHumanoid5, v => _emoteBindings["Humanoid"][5] = v, true);
+        Subs.CVar(_config, RMCCVars.RMCEmoteBindingHumanoid6, v => _emoteBindings["Humanoid"][6] = v, true);
+        Subs.CVar(_config, RMCCVars.RMCEmoteBindingHumanoid7, v => _emoteBindings["Humanoid"][7] = v, true);
+        Subs.CVar(_config, RMCCVars.RMCEmoteBindingHumanoid8, v => _emoteBindings["Humanoid"][8] = v, true);
+        _emoteBindings.Add("Xeno", new Dictionary<int, string>());
+        Subs.CVar(_config, RMCCVars.RMCEmoteBindingXeno1, v => _emoteBindings["Xeno"][1] = v, true);
+        Subs.CVar(_config, RMCCVars.RMCEmoteBindingXeno2, v => _emoteBindings["Xeno"][2] = v, true);
+        Subs.CVar(_config, RMCCVars.RMCEmoteBindingXeno3, v => _emoteBindings["Xeno"][3] = v, true);
+        Subs.CVar(_config, RMCCVars.RMCEmoteBindingXeno4, v => _emoteBindings["Xeno"][4] = v, true);
+        Subs.CVar(_config, RMCCVars.RMCEmoteBindingXeno5, v => _emoteBindings["Xeno"][5] = v, true);
+        Subs.CVar(_config, RMCCVars.RMCEmoteBindingXeno6, v => _emoteBindings["Xeno"][6] = v, true);
+        Subs.CVar(_config, RMCCVars.RMCEmoteBindingXeno7, v => _emoteBindings["Xeno"][7] = v, true);
+        Subs.CVar(_config, RMCCVars.RMCEmoteBindingXeno8, v => _emoteBindings["Xeno"][8] = v, true);
 
-        CommandBinds.Builder
-            .Bind(CMKeyFunctions.RMCHumanoidEmote1,
-                InputCmdHandler.FromDelegate(session => TriggerBoundEmote(session, RMCEmoteBindingType.Humanoid, 1))
-            )
-            .Bind(CMKeyFunctions.RMCHumanoidEmote2,
-                InputCmdHandler.FromDelegate(session => TriggerBoundEmote(session, RMCEmoteBindingType.Humanoid, 2))
-            )
-            .Bind(CMKeyFunctions.RMCHumanoidEmote3,
-                InputCmdHandler.FromDelegate(session => TriggerBoundEmote(session, RMCEmoteBindingType.Humanoid, 3))
-            )
-            .Bind(CMKeyFunctions.RMCHumanoidEmote4,
-                InputCmdHandler.FromDelegate(session => TriggerBoundEmote(session, RMCEmoteBindingType.Humanoid, 4))
-            )
-            .Bind(CMKeyFunctions.RMCHumanoidEmote5,
-                InputCmdHandler.FromDelegate(session => TriggerBoundEmote(session, RMCEmoteBindingType.Humanoid, 5))
-            )
-            .Bind(CMKeyFunctions.RMCHumanoidEmote6,
-                InputCmdHandler.FromDelegate(session => TriggerBoundEmote(session, RMCEmoteBindingType.Humanoid, 6))
-            )
-            .Bind(CMKeyFunctions.RMCHumanoidEmote7,
-                InputCmdHandler.FromDelegate(session => TriggerBoundEmote(session, RMCEmoteBindingType.Humanoid, 7))
-            )
-            .Bind(CMKeyFunctions.RMCHumanoidEmote8,
-                InputCmdHandler.FromDelegate(session => TriggerBoundEmote(session, RMCEmoteBindingType.Humanoid, 8))
-            )
-            .Register<SharedRMCEmoteSystem>();
+
+        CommandBinds.Builder // this fucking sucks... but if you try to do it dynamically it throws a fit
+                .Bind(CMKeyFunctions.RMCHumanoidEmote1,
+                    InputCmdHandler.FromDelegate(session => TriggerBoundEmote(session, 1))
+                )
+                .Bind(CMKeyFunctions.RMCHumanoidEmote2,
+                    InputCmdHandler.FromDelegate(session => TriggerBoundEmote(session, 2))
+                )
+                .Bind(CMKeyFunctions.RMCHumanoidEmote3,
+                    InputCmdHandler.FromDelegate(session => TriggerBoundEmote(session, 3))
+                )
+                .Bind(CMKeyFunctions.RMCHumanoidEmote4,
+                    InputCmdHandler.FromDelegate(session => TriggerBoundEmote(session, 4))
+                )
+                .Bind(CMKeyFunctions.RMCHumanoidEmote5,
+                    InputCmdHandler.FromDelegate(session => TriggerBoundEmote(session, 5))
+                )
+                .Bind(CMKeyFunctions.RMCHumanoidEmote6,
+                    InputCmdHandler.FromDelegate(session => TriggerBoundEmote(session, 6))
+                )
+                .Bind(CMKeyFunctions.RMCHumanoidEmote7,
+                    InputCmdHandler.FromDelegate(session => TriggerBoundEmote(session, 7))
+                )
+                .Bind(CMKeyFunctions.RMCHumanoidEmote8,
+                    InputCmdHandler.FromDelegate(session => TriggerBoundEmote(session, 8))
+                )
+                .Bind(CMKeyFunctions.RMCXenoEmote1,
+                    InputCmdHandler.FromDelegate(session => TriggerBoundEmote(session, 1))
+                )
+                .Bind(CMKeyFunctions.RMCXenoEmote2,
+                    InputCmdHandler.FromDelegate(session => TriggerBoundEmote(session, 2))
+                )
+                .Bind(CMKeyFunctions.RMCXenoEmote3,
+                    InputCmdHandler.FromDelegate(session => TriggerBoundEmote(session, 3))
+                )
+                .Bind(CMKeyFunctions.RMCXenoEmote4,
+                    InputCmdHandler.FromDelegate(session => TriggerBoundEmote(session, 4))
+                )
+                .Bind(CMKeyFunctions.RMCXenoEmote5,
+                    InputCmdHandler.FromDelegate(session => TriggerBoundEmote(session, 5))
+                )
+                .Bind(CMKeyFunctions.RMCXenoEmote6,
+                    InputCmdHandler.FromDelegate(session => TriggerBoundEmote(session, 6))
+                )
+                .Bind(CMKeyFunctions.RMCXenoEmote7,
+                    InputCmdHandler.FromDelegate(session => TriggerBoundEmote(session, 7))
+                )
+                .Bind(CMKeyFunctions.RMCXenoEmote8,
+                    InputCmdHandler.FromDelegate(session => TriggerBoundEmote(session, 8))
+                )
+                .Register<SharedRMCEmoteSystem>();
+    }
+
+    private void TriggerBoundEmote(ICommonSession? session, int index)
+    {
+        // Ensure entity can actually speak (can add hand actions here too if needed later)
+        if (session?.AttachedEntity is not { } entity || !TryComp<SpeechComponent>(entity, out var speechComp))
+            return;
+
+        switch (speechComp.SpeechVerb)
+        {
+            case "Xeno": // If xeno, use their special emotes
+                if (_emoteBindings["Xeno"].TryGetValue(index, out var emoteProtoXeno))
+                {
+                    LogManager.RootSawmill.Debug($"{entity.Id} : Xeno Emote {index} -> {emoteProtoXeno}");
+                    RaisePredictiveEvent(new PlayEmoteMessage(emoteProtoXeno));
+                    //TryEmoteWithChat(entity, emoteProtoXeno, cooldown: _emoteCooldown);
+                }
+                break;
+            default: // Fallback to Humanoid otherwise
+                if (_emoteBindings["Humanoid"].TryGetValue(index, out var emoteProtoHumanoid))
+                {
+                    LogManager.RootSawmill.Debug($"{entity.Id} : Humanoid Emote {index} -> {emoteProtoHumanoid}");
+                    RaisePredictiveEvent(new PlayEmoteMessage(emoteProtoHumanoid));
+                    //TryEmoteWithChat(entity, "Scream", forceEmote:true, cooldown: _emoteCooldown);
+                }
+                break;
+        }
     }
 
     public virtual void TryEmoteWithChat(
@@ -342,12 +412,5 @@ public abstract class SharedRMCEmoteSystem : EntitySystem
             var leaveHangingMessage = Loc.GetString("rmc-hands-emotes-left-hanging");
             _popup.PopupEntity(leaveHangingMessage, uid, uid, PopupType.SmallCaution);
         }
-    }
-
-    private void TriggerBoundEmote(ICommonSession? session, RMCEmoteBindingType type, int index)
-    {
-        if (session?.AttachedEntity is not { } entity || !TryComp<SpeechComponent>(entity, out var speechComp))
-            return;
-        TryEmoteWithChat(entity, "Scream", cooldown: _emoteCooldown);
     }
 }
