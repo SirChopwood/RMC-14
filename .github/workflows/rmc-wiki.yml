@@ -14,6 +14,6 @@ jobs:
           route: POST /repos/{owner}/{repo}/dispatches
           owner: RMC-14
           repo: RMC-14
-          body: {event_type: 'deploy-site'}
+          body: "{event_type: 'deploy-site'}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
