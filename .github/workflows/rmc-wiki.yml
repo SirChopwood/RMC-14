@@ -1,0 +1,19 @@
+﻿name: rmc-wiki.yml
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deployWiki:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: octokit/request-action@v2.x
+        id: create_check_run
+        with:
+          route: POST /repos/{owner}/{repo}/dispatches
+          owner: RMC-14
+          repo: RMC-14
+          body: {event_type: 'deploy-site'}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
