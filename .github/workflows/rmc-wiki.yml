@@ -15,4 +15,4 @@ jobs:
           repo: RMC-Wiki
           event_type: deploy-site
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.WIKI_ACCESS_TOKEN }}
