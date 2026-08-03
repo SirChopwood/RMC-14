@@ -1,8 +1,7 @@
 ﻿name: rmc-wiki.yml
 on:
   push:
-    branches:
-      - main
+    branches: [ master, staging, stable ]
 
 jobs:
   deployWiki:
