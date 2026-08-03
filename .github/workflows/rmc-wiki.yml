@@ -12,7 +12,7 @@ jobs:
         with:
           route: POST /repos/{owner}/{repo}/dispatches
           owner: ${{ github.repository_owner }}
-          repo: RMC-14
+          repo: RMC-Wiki
           event_type: deploy-site
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
