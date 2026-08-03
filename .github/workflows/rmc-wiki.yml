@@ -11,8 +11,8 @@ jobs:
         id: create_check_run
         with:
           route: POST /repos/{owner}/{repo}/dispatches
-          owner: RMC-14
+          owner: ${{ github.repository_owner }}
           repo: RMC-14
-          body: "{event_type: 'deploy-site'}"
+          event_type: deploy-site
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
