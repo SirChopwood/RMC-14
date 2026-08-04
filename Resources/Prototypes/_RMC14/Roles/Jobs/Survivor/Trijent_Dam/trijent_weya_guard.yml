@@ -13,7 +13,7 @@
   - !type:AddComponentSpecial
     components:
     - type: Skills
-      preset: SurvivorMarshal
+      preset: RMCSkillPresetSurvivorMarshal
     - type: RMCSurvivor
     - type: MotionDetectorTracked
     - type: NpcFactionMember
@@ -24,6 +24,13 @@
     - type: RMCAllowSuitStorage
     - type: EquipSurvivorPreset
       preset: RMCSurvivorPresetSecurity
+    - type: TacticalMapIcon
+      icon:
+        sprite: /Textures/_RMC14/Interface/map_blips.rsi
+        state: cmp
+      background:
+        sprite: /Textures/_RMC14/Interface/map_blips.rsi
+        state: background_goon
 
 - type: startingGear
   parent: RMCGearSurvivorSecurity
@@ -51,5 +58,5 @@
   parent: CMJobIconBase
   id: RMCJobIconWeYaSec
   icon:
-    sprite: _RMC14/Interface/cm_job_icons.rsi
+    sprite: _RMC14/Interface/job_icons/We-Ya/pmc.rsi
     state: weya_sec
